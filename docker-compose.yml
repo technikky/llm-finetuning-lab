@@ -1,0 +1,77 @@
+# Convenience wrappers around the same image. Nothing here needs a network, a token or a
+# GPU; `docker compose run budget` answers "will this fit" without downloading anything.
+#
+#   docker compose run --rm budget
+#   docker compose run --rm qlora
+#   docker compose run --rm train
+#   docker compose run --rm sweep
+#   docker compose run --rm quantization
+
+services:
+  budget:
+    build:
+      context: .
+      target: runtime
+    image: ftlab:local
+    command: ["budget", "--r", "16", "--target", "attention"]
+
+  qlora:
+    image: ftlab:local
+    build:
+      context: .
+      target: runtime
+    command: ["budget", "--model", "llama-2-7b", "--quantization", "nf4", "--vram", "24"]
+
+  train:
+    image: ftlab:local
+    build:
+      context: .
+      target: runtime
+    command:
+      - train
+      - data/instructions.jsonl
+      - --model=tiny-llama
+      - --r=16
+      - --target=attention
+      - --template=alpaca
+      - --max-length=512
+      - --epochs=4
+      - --batch-size=4
+      - --lr=3e-3
+      - --adapter-out=adapters/tiny-r16
+    volumes:
+      - runs:/home/ftlab/runs
+      - adapters:/home/ftlab/adapters
+
+  # The rank sweep the README publishes. Shares the volumes with `train`, so `ftlab
+  # compare` afterwards sees all of them.
+  sweep:
+    image: ftlab:local
+    build:
+      context: .
+      target: runtime
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        for r in 4 16 64; do
+          ftlab train data/instructions.jsonl --model tiny-llama --r "$$r" \
+            --target attention --template alpaca --max-length 512 \
+            --epochs 4 --batch-size 4 --lr 3e-3 --adapter-out "adapters/tiny-r$$r"
+        done
+        ftlab compare
+    volumes:
+      - runs:/home/ftlab/runs
+      - adapters:/home/ftlab/adapters
+
+  # Reports what 4-bit support the container actually has. On a CPU-only host this
+  # correctly says "not usable", with the reason.
+  quantization:
+    image: ftlab:local
+    build:
+      context: .
+      target: runtime
+    command: ["quantization"]
+
+volumes:
+  runs:
+  adapters:

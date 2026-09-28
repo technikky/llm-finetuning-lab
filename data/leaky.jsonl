@@ -1,0 +1,7 @@
+# Deliberately broken: contains a near-duplicate and a train/eval leak, so the detector can be demonstrated.
+{"id": "l01", "input": "", "instruction": "What is the default rate limit?", "output": "The default rate limit is 600 requests per minute per API key.", "split": "train"}
+{"id": "l02", "input": "", "instruction": "How long do access tokens last?", "output": "Access tokens expire after one hour.", "split": "train"}
+{"id": "l03", "input": "", "instruction": "what is the   default rate limit?", "output": "The default rate limit is 600 requests per minute per API key.", "split": "train"}
+{"id": "l04", "input": "", "instruction": "Are webhooks delivered exactly once?", "output": "No. Webhooks are delivered at least once.", "split": "train"}
+{"id": "l05", "input": "", "instruction": "How long do access tokens last?", "output": "Access tokens expire after one hour.", "split": "eval"}
+{"id": "l06", "input": "", "instruction": "Which SSO protocols are supported?", "output": "SAML 2.0 and OpenID Connect.", "split": "eval"}

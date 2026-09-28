@@ -1,0 +1,61 @@
+# Instruction-tuning set for an API support domain. All text written for this repository.
+{"id": "t01", "input": "", "instruction": "What is the default rate limit?", "output": "The default rate limit is 600 requests per minute per API key.", "split": "train"}
+{"id": "t02", "input": "", "instruction": "How do I raise my rate limit?", "output": "Contact support to request a higher limit; enterprise plans can be raised on request.", "split": "train"}
+{"id": "t03", "input": "", "instruction": "What status code means rate limited?", "output": "Exceeding the rate limit returns 429 with a Retry-After header.", "split": "train"}
+{"id": "t04", "input": "", "instruction": "Are rate limits per key or per account?", "output": "Rate limits apply per API key rather than per account.", "split": "train"}
+{"id": "t05", "input": "", "instruction": "How long do access tokens last?", "output": "Access tokens expire after one hour.", "split": "train"}
+{"id": "t06", "input": "", "instruction": "How long do refresh tokens last?", "output": "Refresh tokens expire after thirty days.", "split": "train"}
+{"id": "t07", "input": "", "instruction": "Can a refresh token be reused?", "output": "No. A refresh token is single use; exchanging it returns a new pair and invalidates the old one.", "split": "train"}
+{"id": "t08", "input": "", "instruction": "What happens when a client is revoked?", "output": "Revoking a client invalidates every token it issued.", "split": "train"}
+{"id": "t09", "input": "", "instruction": "Are tokens tied to a client?", "output": "Yes. Tokens are bound to the client that requested them.", "split": "train"}
+{"id": "t10", "input": "", "instruction": "How long do refunds take?", "output": "Refunds are issued to the original payment method within five working days.", "split": "train"}
+{"id": "t11", "input": "", "instruction": "Can I refund an uncaptured authorisation?", "output": "No. A refund cannot be issued against an authorisation that has not been captured.", "split": "train"}
+{"id": "t12", "input": "", "instruction": "How are partial refunds tracked?", "output": "Partial refunds are tracked against a remaining balance held by the payment provider.", "split": "train"}
+{"id": "t13", "input": "", "instruction": "Which exchange rate applies to a refund?", "output": "The rate on the day of the refund, not the day of purchase.", "split": "train"}
+{"id": "t14", "input": "", "instruction": "When is the maintenance window?", "output": "The maintenance window runs from 02:00 to 04:00 UTC every second Sunday.", "split": "train"}
+{"id": "t15", "input": "", "instruction": "What happens to writes during maintenance?", "output": "The write API returns 503 and reads are served from a replica.", "split": "train"}
+{"id": "t16", "input": "", "instruction": "Are scheduled jobs affected by maintenance?", "output": "Scheduled jobs are paused and resume automatically afterwards.", "split": "train"}
+{"id": "t17", "input": "", "instruction": "Can I change my maintenance window?", "output": "Enterprise customers can request an alternative window with two weeks notice.", "split": "train"}
+{"id": "t18", "input": "", "instruction": "How long are event logs kept?", "output": "Event logs are retained for thirty days, then archived to cold storage for a year.", "split": "train"}
+{"id": "t19", "input": "", "instruction": "How long are audit records kept?", "output": "Audit records are kept for seven years to meet reporting obligations.", "split": "train"}
+{"id": "t20", "input": "", "instruction": "When are deleted records purged from backups?", "output": "Deleted records are purged from backups within thirty-five days.", "split": "train"}
+{"id": "t21", "input": "", "instruction": "Are webhooks delivered exactly once?", "output": "No. Webhooks are delivered at least once, so receivers must tolerate duplicates.", "split": "train"}
+{"id": "t22", "input": "", "instruction": "How long are webhooks retried?", "output": "Delivery is retried with exponential backoff for up to twenty-four hours.", "split": "train"}
+{"id": "t23", "input": "", "instruction": "How do I verify a webhook signature?", "output": "Verify the signature against the raw request bytes, before parsing the payload.", "split": "train"}
+{"id": "t24", "input": "", "instruction": "Can webhooks arrive out of order?", "output": "Yes. A refund event can arrive before the payment event it refers to.", "split": "train"}
+{"id": "t25", "input": "", "instruction": "Which SSO protocols are supported?", "output": "Single sign-on supports SAML 2.0 and OpenID Connect.", "split": "train"}
+{"id": "t26", "input": "", "instruction": "Can SSO groups map to roles?", "output": "Yes. Group membership can be mapped to roles during provisioning.", "split": "train"}
+{"id": "t27", "input": "", "instruction": "What is just-in-time provisioning?", "output": "It creates an account on the first successful sign-in.", "split": "train"}
+{"id": "t28", "input": "", "instruction": "What happens if I disable SSO?", "output": "Disabling SSO leaves existing accounts intact.", "split": "train"}
+{"id": "t29", "input": "", "instruction": "Which export formats are available?", "output": "Exports are available as CSV, JSON Lines and Parquet.", "split": "train"}
+{"id": "t30", "input": "", "instruction": "How are large exports delivered?", "output": "As a signed download link valid for one hour.", "split": "train"}
+{"id": "t31", "input": "", "instruction": "Is export column order stable?", "output": "Yes. Column order is stable across versions so downstream parsers do not break.", "split": "train"}
+{"id": "t32", "input": "", "instruction": "What is a severity one incident?", "output": "Severity one means a core flow is unavailable for many customers.", "split": "train"}
+{"id": "t33", "input": "", "instruction": "What is a severity two incident?", "output": "Severity two covers degraded service or a broken secondary flow.", "split": "train"}
+{"id": "t34", "input": "", "instruction": "Who can raise incident severity?", "output": "Anyone may raise severity; lowering it requires review.", "split": "train"}
+{"id": "t35", "input": "", "instruction": "What data does the sandbox contain?", "output": "The sandbox mirrors production behaviour with synthetic data.", "split": "train"}
+{"id": "t36", "input": "", "instruction": "When is sandbox data reset?", "output": "Sandbox data is reset every Sunday.", "split": "train"}
+{"id": "t37", "input": "", "instruction": "Can sandbox keys be used in production?", "output": "No. Sandbox keys cannot be used against production endpoints.", "split": "train"}
+{"id": "t38", "input": "Limits are per API key. The default is 600 requests a minute, burstable to 1000 for ten seconds. Exceeding returns 429.", "instruction": "Summarise the rate limit rules.", "output": "Limits are per key: 600 requests a minute, bursting to 1000 for ten seconds, and 429 when exceeded.", "split": "train"}
+{"id": "t39", "input": "Access tokens last one hour and refresh tokens thirty days. A refresh token is single use and tokens are bound to their client.", "instruction": "Summarise the token rules.", "output": "Access tokens last an hour, refresh tokens thirty days, refresh tokens are single use, and tokens are client-bound.", "split": "train"}
+{"id": "t40", "input": "Refunds go to the original method within five working days. Uncaptured authorisations cannot be refunded. Partial refunds track a remaining balance.", "instruction": "Summarise the refund rules.", "output": "Refunds return to the original method within five working days; uncaptured authorisations cannot be refunded and partial refunds track a balance.", "split": "train"}
+{"id": "t41", "input": "Event logs are kept thirty days then archived for a year. Audit records are kept seven years. Backups purge deletions within thirty-five days.", "instruction": "Extract the retention periods.", "output": "Event logs thirty days, archive one year, audit records seven years, backup purge thirty-five days.", "split": "train"}
+{"id": "t42", "input": "The window runs 02:00 to 04:00 UTC every second Sunday, and enterprise customers need two weeks notice to move it.", "instruction": "Extract the maintenance timings.", "output": "02:00 to 04:00 UTC, every second Sunday, two weeks notice to move it.", "split": "train"}
+{"id": "t43", "input": "The default allowance is 600 requests a minute, burstable to 1000 for ten seconds.", "instruction": "Answer from the text: what is the burst limit?", "output": "1000 requests for ten seconds.", "split": "train"}
+{"id": "t44", "input": "Exceeding the limit returns 429 with a Retry-After header.", "instruction": "Answer from the text: what header is returned?", "output": "A Retry-After header.", "split": "train"}
+{"id": "t45", "input": "Large exports are delivered as a signed download link valid for one hour.", "instruction": "Answer from the text: how long is the download link valid?", "output": "One hour.", "split": "train"}
+{"id": "t46", "input": "The checkout flow is down for all customers in Europe.", "instruction": "Classify this report's severity.", "output": "Severity one.", "split": "train"}
+{"id": "t47", "input": "The export button is misaligned on one settings page.", "instruction": "Classify this report's severity.", "output": "Severity three.", "split": "train"}
+{"id": "t48", "input": "Search is slow but working, and the secondary reporting tab is broken.", "instruction": "Classify this report's severity.", "output": "Severity two.", "split": "train"}
+{"id": "e01", "input": "", "instruction": "What is the burst allowance?", "output": "The limit bursts to 1000 requests for ten seconds.", "split": "eval"}
+{"id": "e02", "input": "", "instruction": "What happens if I reuse a refresh token?", "output": "It is rejected; a refresh token is single use and is invalidated when exchanged.", "split": "eval"}
+{"id": "e03", "input": "", "instruction": "Where is a refund sent?", "output": "Refunds are issued to the original payment method within five working days.", "split": "eval"}
+{"id": "e04", "input": "", "instruction": "How often does the maintenance window occur?", "output": "Every second Sunday, from 02:00 to 04:00 UTC.", "split": "eval"}
+{"id": "e05", "input": "", "instruction": "How long is cold storage retention?", "output": "Archived event logs are kept in cold storage for a further year.", "split": "eval"}
+{"id": "e06", "input": "", "instruction": "Must webhook receivers handle duplicates?", "output": "Yes. Delivery is at least once, so receivers must tolerate duplicates.", "split": "eval"}
+{"id": "e07", "input": "", "instruction": "Does disabling SSO delete accounts?", "output": "No. Disabling SSO leaves existing accounts intact.", "split": "eval"}
+{"id": "e08", "input": "", "instruction": "Is Parquet an export format?", "output": "Yes. Exports are available as CSV, JSON Lines and Parquet.", "split": "eval"}
+{"id": "e09", "input": "Payments are failing for every customer.", "instruction": "Classify this report's severity.", "output": "Severity one.", "split": "eval"}
+{"id": "e10", "input": "Sandbox data is reset every Sunday, and sandbox keys cannot be used against production endpoints.", "instruction": "Answer from the text: when is the sandbox reset?", "output": "Every Sunday.", "split": "eval"}
+{"id": "e11", "input": "Webhooks are at least once, retried with exponential backoff for twenty-four hours, signed, and can arrive out of order.", "instruction": "Summarise the webhook rules.", "output": "At least once delivery, retried with backoff for twenty-four hours, signed, and possibly out of order.", "split": "eval"}
+{"id": "e12", "input": "", "instruction": "Who reviews a severity downgrade?", "output": "Lowering severity requires review; anyone may raise it.", "split": "eval"}

@@ -1,0 +1,11 @@
+# Normalise to LF. The config hash covers the training config, not the checkout, but the
+# dataset fingerprints are taken over text: a CRLF checkout of data/*.jsonl would change
+# every fingerprint and therefore every leakage check.
+* text=auto eol=lf
+
+*.jsonl text eol=lf
+
+*.safetensors binary
+*.bin binary
+*.pt binary
+*.png binary

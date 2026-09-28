@@ -1,0 +1,95 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "llm-finetuning-lab"
+version = "0.1.0"
+description = "LoRA and QLoRA fine-tuning with exact parameter budgets, verified adapter invariants and reproducible runs."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Nur Afzan Zulaikha" }]
+keywords = [
+  "lora",
+  "qlora",
+  "peft",
+  "fine-tuning",
+  "parameter-efficient",
+  "quantization",
+  "transformers",
+  "reproducibility",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "pydantic>=2.7",
+  "torch>=2.2",
+  "transformers>=4.40",
+  "peft>=0.11",
+  "accelerate>=0.30",
+  "safetensors>=0.4",
+]
+
+[project.optional-dependencies]
+# 4-bit quantisation needs a CUDA build of bitsandbytes. It is optional on purpose: every
+# budget number and every test in this repository runs on CPU without it, and `ftlab
+# quantization` reports honestly when it is missing rather than pretending.
+quant = ["bitsandbytes>=0.43"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11"]
+
+[project.scripts]
+ftlab = "ftlab.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/technikky/llm-finetuning-lab"
+Issues = "https://github.com/technikky/llm-finetuning-lab/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ftlab"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "ANN"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests take fixtures whose types are `transformers` model classes that are not part of any
+# public stub surface; annotating them buys nothing and pins an internal name.
+"tests/*" = ["ANN001", "ANN201"]
+
+[tool.mypy]
+# numpy arrives transitively through torch, and numpy 2.5's stubs are written with PEP 695
+# `type` statements, which mypy refuses to parse unless it is targeting 3.12+. Pointing mypy
+# at 3.10 therefore fails before it checks anything. So mypy targets 3.12 and the 3.10 floor
+# is enforced the other way: CI runs the full suite on 3.10, 3.11 and 3.12, and ruff's
+# target-version above rejects syntax newer than 3.10.
+python_version = "3.12"
+files = ["src/ftlab"]
+strict = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+# torch ships inline types but large parts of `transformers` and `peft` are untyped, and
+# bitsandbytes is an optional import that CI does not install at all.
+module = ["transformers.*", "peft.*", "bitsandbytes.*", "accelerate.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["src/ftlab"]
+branch = true

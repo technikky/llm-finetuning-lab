@@ -1,0 +1,34 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.env
+.env.*
+!.env.example
+
+# Run outputs. The registry is reproducible from the configs it records, so it is not
+# something to commit; committing it would also publish absolute paths and hostnames.
+runs/
+reports/
+adapters/
+checkpoints/
+
+# Model and adapter weights. Every spec in this repository is built from a config, so a
+# checkout needs no weights at all.
+*.safetensors
+*.bin
+*.pt
+*.gguf
+
+# Hugging Face caches, if someone points them at the repository.
+.cache/
+hf_cache/

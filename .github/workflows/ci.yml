@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: lint / types / tests (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      # CPU wheels only. Nothing here needs CUDA, and the default index would pull
+      # ~2.5 GB of nvidia packages into every job.
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Format check
+        run: ruff format --check .
+
+      # mypy targets 3.12 (numpy's stubs, pulled in via torch, need it); this matrix is
+      # what actually enforces the 3.10 floor at runtime.
+      - name: Type check
+        run: mypy
+
+      # These are real training runs, real merges and real evaluations -- affordable
+      # because the models are 107k and 657k parameters built from a config.
+      - name: Tests
+        run: pytest --cov=ftlab --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+
+  published-numbers:
+    name: reproduce the published numbers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e .
+
+      # Every number in the README comes from these commands. They need no download,
+      # no API key and no GPU, so they run on every commit instead of being trusted.
+      - name: Computed budgets
+        run: |
+          ftlab specs
+          ftlab budget --r 16 --target attention --out reports/budget-r16
+          ftlab budget --model llama-2-7b --quantization nf4 --vram 24 --out reports/qlora-7b
+
+      - name: Dataset statistics
+        run: ftlab prepare data/instructions.jsonl --template alpaca --out reports/dataset
+
+      # Exits non-zero: the fixture has a train/eval leak, and the point of the guard is
+      # that it stops rather than reporting a number measured on a compromised split.
+      - name: Leakage detection refuses the broken fixture
+        run: |
+          if ftlab prepare data/leaky.jsonl --template alpaca; then
+            echo "expected a non-zero exit on the leaking dataset"
+            exit 1
+          fi
+
+      - name: Measured rank sweep
+        run: |
+          for r in 4 16 64; do
+            ftlab train data/instructions.jsonl --model tiny-llama --r "$r" \
+              --target attention --template alpaca --max-length 512 \
+              --epochs 4 --batch-size 4 --lr 3e-3 \
+              --runs-dir runs --out "reports/run-r$r" --adapter-out "adapters/tiny-r$r"
+          done
+          ftlab runs
+          ftlab compare
+
+      # A saved adapter must reload onto a rebuilt base and give the same perplexity.
+      # If base initialisation were not seeded from the spec, this would silently differ.
+      - name: Adapter round-trip
+        run: |
+          ftlab evaluate data/instructions.jsonl --model tiny-llama \
+            --template alpaca --max-length 512 --adapter adapters/tiny-r16
+          ftlab evaluate data/instructions.jsonl --model tiny-llama \
+            --template alpaca --max-length 512 --adapter adapters/tiny-r16 --merge
+
+      - name: 4-bit support on this runner
+        run: ftlab quantization
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-numbers
+          path: reports/
+
+  secrets-scan:
+    name: secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    name: docker build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runtime
+          push: false
+          load: true
+          tags: ftlab:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Running the image is what catches a broken entrypoint or a package that was
+      # built without its data.
+      - name: Run a fine-tune inside the image
+        run: |
+          docker run --rm ftlab:ci budget --model llama-2-7b --quantization nf4 --vram 24
+          docker run --rm ftlab:ci train data/instructions.jsonl --model nano-llama \
+            --template raw --max-length 256 --epochs 1 --r 4
