@@ -1,0 +1,25 @@
+# gitleaks configuration.
+#
+# The default rule set is kept in full. This file records exactly one false positive, as
+# narrowly as it can be expressed.
+#
+# What happened: `generic-api-key` fired on this line in tests/test_data.py
+#
+#     Example(id="x", instruction="Say hello", output="Hello."), tokenizer, max_length=512
+#
+# The rule looks for a keyword from {access, auth, api, credential, key, password, secret,
+# token, ...}, then a separator, then a high-entropy value. "tokeniz*er*" contains "token",
+# the comma is an accepted separator, and `max_length=512` is fourteen distinct characters --
+# log2(14) = 3.807 bits, which is over the threshold. There is no secret: it is a keyword
+# argument naming a sequence length, and `tokenizer, max_length=...` is a shape that recurs
+# naturally throughout a repository about tokenization.
+#
+# The allowlist is scoped to that literal shape, not to the file and not to the rule, so a real
+# credential committed to a test file still fails the scan.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "keyword arguments whose names collide with the generic-api-key keyword list"
+regexes = ['''^max_length=\d+$''']
